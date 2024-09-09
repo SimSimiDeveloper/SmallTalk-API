@@ -74,7 +74,7 @@ curl -X POST https://wsapi.simsimi.com/190410/talk \
  ```
 #### Response Control Options
 
-- `country` : Country filter for conversation sets. For languages that are spoken in multiple countries, such as English or Spanish, you can limit your response candidates to conversation sets created in a specific countries. ([ISO-3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) 국가코드를 10개까지 열거할 수 있음, 미지정시 모든 국가를 대상으로 함.)  
+- `country` : Country filter for conversation sets. For languages that are spoken in multiple countries, such as English or Spanish, you can limit your response candidates to conversation sets created in a specific countries. ([ISO-3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) You can list up to 10 country codes, if not specified, all countries are targeted.)  
 　
 - `atext_bad_prob_max`, `qtext_bad_prob_max`, `talkset_bad_prob_max` : Maximum probability of bad words in a sentence. It is used to suppress bad language in chatbot responses. In many cases, it is sufficient to appropriately adjust the maximum bad word probability of the response sentence (`atext_bad_prob_max`), and the bad word probability of the question sentence and the dialogue set. (`qtext_bad_prob_max`) (`talkset_bad_prob_max`)You can control more conservatively by specifying additionally. The probability of bad words in the dialogue set is determined by combining the question sentence and the answer sentence as a single sentence. The probability value with one decimal place (0.0 ~ 1.0, default value 1.0 if not specified) 
 　
@@ -215,18 +215,18 @@ Most language codes are identical to ISO-639-1, but note that there are some exc
 |Kinyarwanda	|	 Ikinyarwanda	|	 rw|
 |Chinese (Traditional)	|	 繁體中文	|	 zh*|
 
-## 상태코드표
+## Status code table
 
-|`status` | `statusMessage` | 설명 | 
+|`status` | `statusMessage` | Explanation | 
 | --- | --- | --- |
-|200 | 	OK | 정상 |
-|227 | 	Parameter Required | 필수 파라미터 누락 |
-|228 |	Do Not Understand | 질문에 대한 답변을 찾을 수 없음 |
-|403 |	Unauthorized | 유효하지 않은 API Key |
-|429 |	Limit Exceeded | 사용 한도 초과 |
-|500 |	Server error | 서버 오류 |
+|200 | 	OK | Normal |
+|227 | 	Parameter Required | Required parameter missing |
+|228 |	Do Not Understand | No answer to your question found |
+|403 |	Unauthorized | Invalid API Key |
+|429 |	Limit Exceeded | Exceeded usage limit |
+|500 |	Server error | Server Error |
 
-## 나쁜말확률
-나쁜말확률은 불건전한(또는 악성) 문장을 구별하기 위해 심심이팀이 개발한 지표입니다. 뛰어난 성능을 보이는 고급 딥러닝 기술을 포함해 다양한 기법을 동원하여 산출합니다. 자세한 내용은 다음 블로그 포스트를 참고하시기 바랍니다. ([심심이 대화 품질 - 나쁜말 필터 관련 기술](http://blog.simsimi.com/2019/03/blog-post.html))
+## Bad word probability
+Bad Word Probability is an indicator developed by the SimSimi team to distinguish unhealthy (or malicious) sentences. It is calculated by utilizing various techniques, including advanced deep learning technology that shows excellent performance. For more information, please refer to the following blog post. ([SimSimi Conversation Quality - Bad Word Filter Related Technology](http://blog.simsimi.com/2019/03/blog-post.html))
 
 
