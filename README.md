@@ -1,3 +1,4 @@
+
 <style
   type="text/css">
 style {color:#ffffff;display:hidden}
@@ -8,37 +9,37 @@ code {color:#000080;}
 
 https://workshop.simsimi.com/document
 
-# 일상대화 API
-심심이챗봇공방(SimSimi Workshop Services, SWS)은 전세계 약 3억 5천만 사용자들에게 즐거움을 제공해 온 일상대화챗봇 '심심이'를 바탕으로 서비스를 제공합니다. '심심이'가 꾸준히 성공적으로 서비스를 해 올 수 있었던 이유는, 세계 각지에서 다양한 배경을 가진 2천 2백만 명 이상의 패널들이 각자의 재치와 영감을 담아 만들어 온 생동감 넘치는 1억 건 이상의 일상대화 전용 대화세트들에 있습니다. 일상대화 API는 이 대화세트들과 심심이팀의 대화처리엔진 AICR를 활용해서 당신의 챗봇이 사용자들에게 웃음과 힐링을 제공할 수 있도록 돕습니다.
+# Daily Conversation API
+SimSimi Workshop Services (SWS) provides services based on the daily conversation chatbot 'SimSimi', which has provided enjoyment to approximately 350 million users worldwide. The reason why 'SimSimi' has been able to provide continuous and successful services is because more than 22 million panelists from all over the world with diverse backgrounds have created vivid and inspiring content with their own wit and inspiration.
 
-## 작동원리
-각 대화세트(`talkset`)는 질문문장(`qtext`)과 답변문장(`atext`)의 쌍으로 이루어집니다.
+## How it works
+Each talkset consists of a pair of question sentences (`qtext`) and answer sentences (`atext`).
 
 <img src="https://workshop.simsimi.com/static/img/smalltalk_diagram_01.png" width="300px" alt="대화세트 개념도">
 
-심심이 대화처리엔진(AICR)은 수많은 대화세트들이 쌓여 있는 대화세트 저장소에서 적절한 응답을 찾는 작업을 합니다. 일상대화 API를 통해 요청이 접수되면 AICR은 대화세트 저장소에서 사용자문장(`utext`)과 유사도 등의 관련성이 높은 질문문장(`qtext`)들을 찾아서 후보군을 만들고, 요청에 포함된 파라미터들과 다른 조건들을 고려하여 가장 적절한 하나의 대화세트를 선택합니다.
+The SimSimi Dialogue Processing Engine (AICR) searches for appropriate responses in the dialogue set repository, which contains numerous dialogue sets. When a request is received through the daily conversation API, AICR searches the dialogue set repository for question sentences (`qtext`) with high similarity to the user sentence (`utext`) and creates a candidate group, and considers the parameters included in the request and other conditions to find the most appropriate response.
 
-일상대화 API가 제공하는 답변문장(`atext`)은 이 과정에서 선택된 대화세트의 답변문장(`atext`)입니다. 예를 들어 요청의 `utext`가 "밥은 먹었어?"일 때 일상대화 API는 다음과 같은 과정을 거쳐 `atext`로 "응 먹었어"를 반환합니다.
+The response sentence(`atext`) provided by the daily conversation API is the response sentence(`atext`) of the conversation set selected in this process. For example, when the `utext` of the request is "Have you eaten?", the daily conversation API returns "Yes, I ate" as `atext` through the following process.
 
 <img src="https://workshop.simsimi.com/static/img/smalltalk_diagram_02.png" width="600px" alt="일상대화 API 개념도">
 
 ## 기본요청
-일상대화 API 엔드포인트(`https://wsapi.simsimi.com/{VERSION}/talk`)를 향해 프로젝트키, 필수파라미터 2개(사용자문장 `utext`, 언어코드 `lang`)를 명시하여 POST 요청하면 응답을 받을 수 있습니다. 
+You can receive a response by making a POST request to the Daily Conversation API endpoint (`https://wsapi.simsimi.com/{VERSION}/talk`) specifying the project key and two required parameters (user sentence `utext`, language code `lang`). 
 
-#### 요청예시
+#### Example request
 ``` bash
 curl -X POST https://wsapi.simsimi.com/190410/talk \
      -H "Content-Type: application/json" \
      -H "x-api-key: PASTE_YOUR_PROJECT_KEY_HERE" \
      -d '{
-            "utext": "안녕", 
-            "lang": "ko" 
+            "utext": "Hi. There", 
+            "lang": "en" 
      }'                     
 ```
-- `utext` : 사용자문장
-- `lang` : 사용자의 언어코드([일상대화 API가 지원하는 언어 및 언어코드](#지원언어))
+- `utext` : User sentences
+- `lang` : User's language code ([Languages and language codes supported by the Daily Conversation API](#ExampleResponse)
 
-#### 응답예시
+#### Example response
 ``` json
 {
   "status":200,
@@ -46,55 +47,55 @@ curl -X POST https://wsapi.simsimi.com/190410/talk \
   "atext":"뭐이눔아",
   "lang":"ko",
   "request":{
-    "utext":"안녕",
-    "lang":"ko"
+    "utext":"Hi. There",
+    "lang":"en"
     }
 }    
 ```
-- `atext` : 답변문장 
-- `request` : 요청 본문
-- `status`, `statusMessage` : 상태정보 ([상태코드표](#상태코드표) 참조)
+- `atext` : Answer sentence 
+- `request` : Request body
+- `status`, `statusMessage` : Status information (See [Status code table](#StatusCodeTable))
 
-## 응답제어
-각 챗봇의 성격에 맞는 응답을 제공하기 위해 응답을 조절하기 위한 옵션들을 제공합니다.
+## Response control
+We provide options to adjust responses to provide responses tailored to the characteristics of each chatbot.
 
-#### 요청예시
-대한민국 또는 미국에서 생성된 대화세트 중에서 [나쁜말확률](#나쁜말확률) 70% 이하인 문장만을 답변으로 제공받고자 하는 경우 다음과 같이 `country`, `atext_bad_prob_max` 두 개의 옵션을 추가해서 요청하면 됩니다.
+#### Example request
+If you want to receive only sentences with a [Bad word probability](#BadWordProbability) of 70% or less from among the conversation sets generated in Korea or the United States as answers, you can make a request by adding the two options `country` and `atext_bad_prob_max` as follows.
 ``` bash
 curl -X POST https://wsapi.simsimi.com/190410/talk \
      -H "Content-Type: application/json" \
      -H "x-api-key: PASTE_YOUR_PROJECT_KEY_HERE" \
      -d '{
-            "utext":"안녕",
-            "lang": "ko",
+            "utext":"Hi. There",
+            "lang": "en",
             "country" : ["KR", "US"],
             "atext_bad_prob_max": 0.7
      }'  
  ```
-#### 응답제어 옵션
+#### Response Control Options
 
-- `country` : 대화세트 생성국가 필터. 영어, 스페인어와 같이 여러 국가에서 사용되는 언어에서 특정 국가(들)에서 생성한 대화세트들로 응답후보를 한정할 수 있습니다. ([ISO-3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) 국가코드를 10개까지 열거할 수 있음, 미지정시 모든 국가를 대상으로 함.)  
+- `country` : Country filter for conversation sets. For languages that are spoken in multiple countries, such as English or Spanish, you can limit your response candidates to conversation sets created in a specific countries. ([ISO-3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) 국가코드를 10개까지 열거할 수 있음, 미지정시 모든 국가를 대상으로 함.)  
 　
-- `atext_bad_prob_max`, `qtext_bad_prob_max`, `talkset_bad_prob_max` : 문장의 나쁜말확률 최댓값. 챗봇의 대답에서 나쁜말을 억제하는 용도로 사용합니다. 많은 경우 응답문장 나쁜말확률 최댓값(`atext_bad_prob_max`)을 적절히 조절하면 충분하며, 질문문장과 대화세트의 나쁜말확률(`qtext_bad_prob_max`, `talkset_bad_prob_max`)을 추가로 지정해서 더 보수적으로 제어할 수 있습니다. 대화세트의 나쁜말확률은 질문문장과 답변문장을 합쳐서 하나의 문장으로 보고 판별합니다. 소숫점 1자리의 확률값 (0.0 ~ 1.0, 미지정시 기본값 1.0)  
+- `atext_bad_prob_max`, `qtext_bad_prob_max`, `talkset_bad_prob_max` : Maximum probability of bad words in a sentence. It is used to suppress bad language in chatbot responses. In many cases, it is sufficient to appropriately adjust the maximum bad word probability of the response sentence (`atext_bad_prob_max`), and the bad word probability of the question sentence and the dialogue set. (`qtext_bad_prob_max`) (`talkset_bad_prob_max`)You can control more conservatively by specifying additionally. The probability of bad words in the dialogue set is determined by combining the question sentence and the answer sentence as a single sentence. The probability value with one decimal place (0.0 ~ 1.0, default value 1.0 if not specified) 
 　
-- `atext_bad_prob_min` : 응답문장의 나쁜말확률 최솟값. 챗봇이 나쁜말을 주로 하도록 할 때 사용할 수 있는 옵션입니다. 상당수 챗봇 플랫폼들은 컨텐츠의 건전성과 관련된 제한이 있으니 사용에 유의하시기 바랍니다. 소숫점 1자리의 확률값 (0.0 ~ 1.0, 미지정시 기본값 0.0)  
+- `atext_bad_prob_min` : Minimum probability of bad words in the response sentence. This option can be used when the chatbot mainly uses bad words. Many chatbot platforms have restrictions related to the soundness of the content, so please use it with caution. Probability value with one decimal place (0.0 ~ 1.0, default value 0.0 if not specified)  
 　
-- `atext_length_max`, `atext_length_min` : 응답문장의 길이 범위 지정. 챗봇의 성격이나 대화 상황에 따라서 응답문장의 길이 범위를 정할 수 있습니다.(1 ~ 256의 정수, 미지정시 기본값 `atext_length_max`은 256, `atext_length_min`은 1 )  
+- `atext_length_max`, `atext_length_min` : Specify the length range of the response sentence. You can set the length range of the response sentence according to the nature of the chatbot or the conversation situation. (Integer from 1 to 256, if not specified, the default value `atext_length_max` is 256, `atext_length_min` is 1)  
 　
-- `regist_date_max`, `regist_date_min` : 대화세트(`talkset`) 등록일 범위 지정. 최신 트랜드에 민감한 챗봇, 과거에 머물러 있는 챗봇 등을 구현하기 위해 사용할 수 있습니다(`yyyy-MM-dd HH:mm:ss` 형식으로 사용, 미지정시 기본값 `regist_date_max`는 현재시간, `regist_date_min`은 최초의 대화세트 등록일)　　
+- `regist_date_max`, `regist_date_min` : Specify the registration date range of the talkset. You can use it to implement chatbots that are sensitive to the latest trends, chatbots that are stuck in the past, etc. (Use in the format `yyyy-MM-dd HH:mm:ss`, if not specified, the default value `regist_date_max` is the current time, `regist_date_min` is the first talkset registration date)
 　  
 
 
-## 추가정보 
-일상대화 API는 응답에 대한 자세한 정보를 얻을 수 있는 방법을 제공합니다. 요청 본문의 `cf_info` 오브젝트에 제공받고자 하는 추가정보들을 예시와 같이 열거하여 요청합니다.
-#### 요청예시
+## Additional information 
+The daily conversation API provides a way to get more information about a response. You request additional information by listing it in the `cf_info` object in the request body, as in the example below.
+#### Example request
 ``` bash
 curl -X POST https://wsapi.simsimi.com/190410/talk \
      -H "Content-Type: application/json" \
      -H "x-api-key: PASTE_YOUR_PROJECT_KEY_HERE" \
      -d '{
-            "utext":"안녕",
-            "lang": "ko",
+            "utext":"Hi. There",
+            "lang": "en",
             "cf_info" : [
                   "qtext",
                   "country",
@@ -104,15 +105,15 @@ curl -X POST https://wsapi.simsimi.com/190410/talk \
             ]
      }'         
 ```
-#### 응답예시
+#### Example response
 ``` json
 {
     "status" : 200,
     "statusMessage" : "OK",
-    "atext" : "안녕 오늘날씨 참 좋지?",
-    "lang" : "ko",
-    "utext" : "안녕",
-    "qtext" : "안녕~~",
+    "atext" : "Hello, is the weather nice today?",
+    "lang" : "en",
+    "utext" : "Hi. There",
+    "qtext" : "Hi~!",
     "country" : "KR",
     "atext_bad_prob" : 0.0,
     "atext_bad_type" : "dpd",
@@ -120,100 +121,99 @@ curl -X POST https://wsapi.simsimi.com/190410/talk \
 }                           
   
 ```
-#### 추가정보 요청 옵션
-- `qtext` : 답변문장(`atext`)과 쌍인 질문문장(`qtext`)
-- `country` : 대화세트 생성 국가의 국가코드([ISO-3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements))
-- `atext_bad_prob` :  답변문장(`atext`)의 나쁜말 확률
-- `atext_bad_type` : 답변문장의 나쁜말 확률(`atext_bad_prob`) 추정 시 사용한 판별 방식. `STAPX`, `DPD`, `WPF`, `HB10A` 중 하나. ([판별방식에 대한 자세한 설명](http://blog.simsimi.com/2019/03/blog-post.html) )
-- `regist_date` : 대화세트 생성 시점
+#### Request additional information options
+- `qtext` : Question sentence (`qtext`Question sentence (`qtext`) paired with answer sentence (`atext`)
+- `country`: Country code of the country where the dialogue set is created - `atext_bad_prob` :  Probability of bad words in the answer sentence (`atext`)
+- `atext_bad_type`: Probability of bad words in the answer sentence (`atext_bad_prob`) The discrimination method used in the estimation. One of `STAPX`, `DPD`, `WPF`, or `HB10A`. ([Detailed description of the discrimination method](http://blog.simsimi.com/2019/03/blog-post.html) )
+- `regist_date` : When the conversation set is created
 
 
-## 지원언어
-대부분의 언어코드는 ISO-639-1과 동일하지만, 다른 사례(*)가 있으니 주의하세요.
+## Supported Languages
+Most language codes are identical to ISO-639-1, but note that there are some exceptions (*).
 
-|언어명	|	 언어명(네이티브)	|	 언어코드|
+|Language name	|	 Language name (native)	|	 Language code|
 | --- | --- | --- |
-|갈리시아어	|	 galego	|	 gl|
-|구자라트어	|	 ગુજરાતી	|	 gu|
-|그루지야어	|	 ქართული	|	 ka|
-|그리스어	|	 Ελληνικά	|	 el|
-|네덜란드어	|	 Nederlands	|	 nl|
-|네팔어	|	 नेपाली	|	 ne|
-|노르웨이어(보크몰)	|	 norsk	|	 nb|
-|덴마크어	|	 Dansk	|	 da|
-|독일어	|	 Deutsch	|	 de|
-|라트비아어	|	 latviešu	|	 lv|
-|러시아어	|	 русский	|	 ru|
-|루마니아어	|	 Română	|	 ro|
-|리투아니아어	|	 lietuvių	|	 lt|
-|마라티어	|	 मराठी	|	 mr|
-|마케도니아어	|	 македонски	|	 mk|
-|말라얄람어	|	 മലയാളം	|	 ml|
-|말레이어	|	 Melayu	|	 ms|
-|몽골어	|	 Монгол	|	 mn|
-|바스크어	|	 euskara	|	 eu|
-|버마어	|	 မြန်မာဘာသာ	|	 my|
-|베트남어	|	 Tiếng Việt	|	 vn*|
-|벨로루시어	|	 беларуская	|	 be|
-|벵골어	|	 বাংলা	|	 bn|
-|보스니아어	|	 bosanski	|	 bs|
-|불가리아어	|	 български	|	 bg|
-|세르비아어	|	 српски	|	 rs*|
-|세부아노	|	 Cebuano	|	 cx*|
-|스와힐리어	|	 Kiswahili	|	 sw|
-|스웨덴어	|	 svenska	|	 sv|
-|스페인어	|	 español	|	 es|
-|슬로바키아어	|	 slovenčina	|	 sk|
-|슬로베니아어	|	 slovenščina	|	 sl|
-|신할라어	|	 සිංහල	|	 si|
-|아랍어	|	 العربية	|	 ar|
-|아르메니아어	|	 հայերեն	|	 hy|
-|아이슬란드어	|	 íslenska	|	 is|
-|아제르바이잔어	|	 Azərbaycanca	|	 az|
-|아프리칸스어	|	 Afrikaans	|	 af|
-|알바니아어	|	 Shqip	|	 al*|
-|에스토니아어	|	 eesti	|	 et|
-|영어	|	 English	|	 en|
-|우르두어	|	 Урду	|	 ur|
-|우즈베크어	|	 O‘zbek	|	 uz|
-|우크라이나어	|	 українська	|	 uk|
-|웨일즈어	|	 Cymraeg	|	 cy|
-|이탈리아어	|	 Italiano	|	 it|
-|인도네시아어	|	 Bahasa Indonesia	|	 id|
-|일본어	|	 日本語	|	 ja|
-|중국어	|	 中文	|	 ch*|
-|체코어	|	 čeština	|	 cs|
-|카자흐어	|	 қазақ	|	 kk|
-|카탈로니아어	|	 català	|	 ca|
-|칸나다어	|	 ಕನ್ನಡ	|	 kn|
-|캄보디아어	|	 ភាសាខ្មែរ	|	 kh*|
-|쿠르드어	|	 Kurdî (Kurmancî)	|	 ku|
-|크로아티아어	|	 hrvatski	|	 hr|
-|타갈로그어	|	 Filipino	|	 ph*|
-|타밀어	|	 தமிழ்	|	 ta|
-|타직어	|	 Тоҷикӣ	|	 tg|
-|태국어	|	 ภาษาไทย	|	 th|
-|터키어	|	 Türkçe	|	 tr|
-|텔루구어	|	 తెలుగు	|	 te|
-|파슈토어	|	 پښتو	|	 ps|
-|펀자브어	|	 ਪੰਜਾਬੀ	|	 pa|
-|페르시아어	|	 فارسی	|	 fa|
-|포르투갈어	|	 português	|	 pt|
-|폴란드어	|	 polski	|	 pl|
-|프랑스어	|	 Français	|	 fr|
-|프리지아어	|	 Frysk	|	 fy|
-|핀란드어	|	 suomi	|	 fi|
-|한국어	|	 한국어	|	 ko|
-|헝가리어	|	 magyar	|	 hu|
-|히브리어	|	 עברית	|	 he|
-|힌디어	|	 हिन्दी	|	 hi|
-|아삼어	|	 অসমীয়া	|	 as|
-|브르타뉴어	|	 Brezhoneg	|	 br|
-|과라니어	|	 Guarani	|	 gn|
-|자바어	|	 Basa Jawa	|	 jv|
-|오리야어	|	 ଓଡ଼ିଆ	|	 or|
-|키냐르완다어	|	 Ikinyarwanda	|	 rw|
-|중국어 (번체)	|	 繁體中文	|	 zh*|
+|Galician	|	 galego	|	 gl|
+|Gujarati	|	 ગુજરાતી	|	 gu|
+|Georgian	|	 ქართული	|	 ka|
+|Greek	|	 Ελληνικά	|	 el|
+|Dutch	|	 Nederlands	|	 nl|
+|Nepali	|	 नेपाली	|	 ne|
+|Norwegian (Bokmål)	|	 norsk	|	 nb|
+|Danish	|	 Dansk	|	 da|
+|German	|	 Deutsch	|	 de|
+|Latvian	|	 latviešu	|	 lv|
+|Russian	|	 русский	|	 ru|
+|Romanian	|	 Română	|	 ro|
+|Lithuanian	|	 lietuvių	|	 lt|
+|Marathi	|	 मराठी	|	 mr|
+|Macedonian	|	 македонски	|	 mk|
+|Malayalam	|	 മലയാളം	|	 ml|
+|Malay	|	 Melayu	|	 ms|
+|Mongolian	|	 Монгол	|	 mn|
+|Basque	|	 euskara	|	 eu|
+|Burmese	|	 မြန်မာဘာသာ	|	 my|
+|Vietnamese	|	 Tiếng Việt	|	 vn*|
+|Belarusian	|	 беларуская	|	 be|
+|Bengali	|	 বাংলা	|	 bn|
+|Bosnian	|	 bosanski	|	 bs|
+|Bulgarian	|	 български	|	 bg|
+|Serbian	|	 српски	|	 rs*|
+|Cebuano	|	 Cebuano	|	 cx*|
+|Swahili	|	 Kiswahili	|	 sw|
+|Swedish	|	 svenska	|	 sv|
+|Spanish	|	 español	|	 es|
+|Slovak	|	 slovenčina	|	 sk|
+|Slovenian	|	 slovenščina	|	 sl|
+|Sinhalese	|	 සිංහල	|	 si|
+|Arabic	|	 العربية	|	 ar|
+|Armenian	|	 հայերեն	|	 hy|
+|Icelandic	|	 íslenska	|	 is|
+|Azerbaijani	|	 Azərbaycanca	|	 az|
+|Afrikaans	|	 Afrikaans	|	 af|
+|Albanian	|	 Shqip	|	 al*|
+|Estonian	|	 eesti	|	 et|
+|English	|	 English	|	 en|
+|Urdu	|	 Урду	|	 ur|
+|Uzbek	|	 O‘zbek	|	 uz|
+|Ukrainian	|	 українська	|	 uk|
+|Welsh	|	 Cymraeg	|	 cy|
+|Italian	|	 Italiano	|	 it|
+|Indonesian	|	 Bahasa Indonesia	|	 id|
+|Japanese	|	 日本語	|	 ja|
+|Chinese	|	 中文	|	 ch*|
+|Czech	|	 čeština	|	 cs|
+|Kazakh	|	 қазақ	|	 kk|
+|Catalan	|	 català	|	 ca|
+|Kannada	|	 ಕನ್ನಡ	|	 kn|
+|Cambodian	|	 ភាសាខ្មែរ	|	 kh*|
+|Kurdish	|	 Kurdî (Kurmancî)	|	 ku|
+|Croatian	|	 hrvatski	|	 hr|
+|Tagalog	|	 Filipino	|	 ph*|
+|Tamil	|	 தமிழ்	|	 ta|
+|Tajik	|	 Тоҷикӣ	|	 tg|
+|Thai	|	 ภาษาไทย	|	 th|
+|Turkish	|	 Türkçe	|	 tr|
+|Telugu	|	 తెలుగు	|	 te|
+|Pashto	|	 پښتو	|	 ps|
+|Punjabi	|	 ਪੰਜਾਬੀ	|	 pa|
+|Persian	|	 فارسی	|	 fa|
+|Portuguese	|	 português	|	 pt|
+|Polish	|	 polski	|	 pl|
+|French	|	 Français	|	 fr|
+|Frisian	|	 Frysk	|	 fy|
+|Finnish	|	 suomi	|	 fi|
+|Korean	|	 한국어	|	 ko|
+|Hungarian	|	 magyar	|	 hu|
+|Hebrew	|	 עברית	|	 he|
+|Hindi	|	 हिन्दी	|	 hi|
+|Assamese	|	 অসমীয়া	|	 as|
+|Breton	|	 Brezhoneg	|	 br|
+|Guarani	|	 Guarani	|	 gn|
+|Javanese	|	 Basa Jawa	|	 jv|
+|Oriya language	|	 ଓଡ଼ିଆ	|	 or|
+|Kinyarwanda	|	 Ikinyarwanda	|	 rw|
+|Chinese (Traditional)	|	 繁體中文	|	 zh*|
 
 ## 상태코드표
 
